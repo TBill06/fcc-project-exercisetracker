@@ -52,7 +52,10 @@ app.post('/api/users', (req, res) => {
 app.get('/api/users', (req, res) => {
   user.find({})
   .then((data) => {
-    res.json({ username: data.username, _id: data._id });
+    const users = data.map((user) => ( 
+      { username: user.username, _id: user._id }
+    ));
+    res.json(users);
   })
   .catch((err) => {
     res.json({ error: err });
@@ -81,7 +84,10 @@ app.post('/api/users/:_id/exercises', (req, res) => {
   let date = req.body.date;
   
   if (!date) {
-    date = new Date().toISOString().substring(0, 10);
+    date = new Date().toDateString();
+  }
+  else {
+    date = new Date(date).toDateString();
   }
   user.findById(_id).then((data) => {
     if (!data) {
@@ -96,13 +102,14 @@ app.post('/api/users/:_id/exercises', (req, res) => {
       else {
         data.log.push(exercise);
         data.save().then((updatedUser) => {
-          res.json({
+          const response = {
             _id: updatedUser._id,
             username: updatedUser.username,
-            description: description,
-            duration: duration,
-            date: date
-          });
+            date: date,
+            duration: Number(duration),
+            description: description
+          };
+          res.json(response);
         })
         .catch((err) => {
           res.json({ error: err });
